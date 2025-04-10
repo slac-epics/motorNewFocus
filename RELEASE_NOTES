@@ -1,0 +1,4 @@
+R0-1.0.0    04/10/2025 - Marcio Donadio
+            - The submodule commit e146427 is referenced in motor 7.3.1, but no
+              tag was applied. We decided to arbitralily tag it as R0. So, this
+              release is R0-1.0.0.
