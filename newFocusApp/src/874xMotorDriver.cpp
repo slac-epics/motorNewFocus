@@ -310,14 +310,14 @@ nf874xAxis::nf874xAxis(nf874xController *pC, int axisNo)
   * not perform a check to determine if the setting is still valid.
   * 
   */
-asynStatus Pico8742Axis::setMotorType()
+asynStatus nf874xAxis::setMotorType()
 {
   asynStatus status = asynSuccess;
-  /* get pico motor type, if small limit velocity */
+  /* get motor type. If small, limit velocity */
   sprintf(pC_->outString_, "%1dQM?", axisNo_ + 1);
   status = pC_->writeReadController();
-  picoType_ = (atoi(pC_->inString_));
-  setIntegerParam(pC_->Pico8742MotorType_, picoType_);
+  motorType_ = (atoi(pC_->inString_));
+  setIntegerParam(pC_->nf874xMotorType_, motorType_);
   callParamCallbacks();
   return status;
 }
