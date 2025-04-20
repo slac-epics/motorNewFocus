@@ -18,6 +18,11 @@ March 28, 2011
 #define motorDeadbandString         "MOTOR_DEADBAND"
 #define motorFollowingErrorString   "MOTOR_FOLLOWING_ERROR"
 
+#define nf874xFirmwareString               "FIRMWARE_VERSION"
+#define nf874xMotorCheckString             "MOTOR_CHECK"
+#define nf874xMotorTypeString              "MOTOR_TYPE"
+#define nf874xSoftResetString              "SOFT_RESET"
+
 class epicsShareClass nf874xAxis : public asynMotorAxis
 {
 public:
@@ -40,6 +45,7 @@ public:
   asynStatus setUpdateInterval(double interval);
   asynStatus setDeadband(int deadband);
   asynStatus setFollowingError(int threshold);
+  asynStatus setMotorType();
 
 private:
   nf874xController *pC_;        /**< Pointer to the asynMotorController to which this axis belongs.
@@ -47,6 +53,8 @@ private:
   char   axisName_[10];         /**< Name of each axis, used in commands to nf874x controller */
   int    lastDirection_;        /**< Last direction of motion (0 == neg, 1 == pos) */
   double encoderPosition_;      /**< Cached copy of the encoder position */
+  int    motorType_;            /** Motor type, returned from QM command */
+  asynStatus sendAccelAndVelocity(double accel, double velocity);
 
   // Members specific for closed-loop support
   int    limitChecking_;        /**< Flag if hard travel limit checking is enabled */
@@ -66,6 +74,8 @@ public:
   /* These are the methods that we override from asynMotorDriver */
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
+  asynStatus writeReadController();
+  asynStatus writeController();
   void report(FILE *fp, int level);
   nf874xAxis* getAxis(asynUser *pasynUser);
   nf874xAxis* getAxis(int axisNo);
@@ -77,8 +87,15 @@ protected:
   int motorUpdateInterval_;
   int motorDeadband_;
   int motorFollowingError_;
+  int nf874xFirmwareString_;
+  int nf874xMotorCheck_;
+  int nf874xMotorType_;
+  int nf874xSoftReset_;
 
   int hasClosedLoopSupport_;  /**< Flag indicating if controller supports closed-loop functionality */
+  asynUser *pasynUserCommonController_;  
+  asynStatus motorCheck();
+  asynStatus softReset();
 
 friend class nf874xAxis;
 };

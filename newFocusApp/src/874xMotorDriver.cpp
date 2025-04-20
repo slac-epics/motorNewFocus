@@ -74,10 +74,20 @@ nf874xController::nf874xController(const char *portName, const char *nf874xPortN
   else
     hasClosedLoopSupport_ = false;
   
+  createParam(nf874xFirmwareString,         asynParamOctet,      &nf874xFirmwareString_);
+  createParam(nf874xMotorCheckString,       asynParamInt32,      &nf874xMotorCheck_);
+  createParam(nf874xMotorTypeString,        asynParamInt32,      &nf874xMotorType_);
+  createParam(nf874xSoftResetString,        asynParamInt32,      &nf874xSoftReset_);
+
   // New parameters specific to 8743-CL
   createParam(motorUpdateIntervalString,    asynParamFloat64,    &motorUpdateInterval_);
   createParam(motorDeadbandString,          asynParamInt32,      &motorDeadband_);
   createParam(motorFollowingErrorString,    asynParamInt32,      &motorFollowingError_); 
+
+  /* get identification string - model, fw, version */
+  sprintf(this->outString_, "*IDN?");
+  this->writeReadController();
+  setStringParam(nf874xFirmwareString_, this->inString_);
 
   // Create the axis objects
   // Axis 0 will remain unused. This allows consistent axis numbering with 
@@ -162,6 +172,14 @@ asynStatus nf874xController::writeInt32(asynUser *pasynUser, epicsInt32 value)
   else if (function == motorFollowingError_) {
     status = pAxis->setFollowingError(value);
   }
+  else if (function == nf874xMotorCheck_)
+  {
+    this->motorCheck();
+  }
+  else if (function == nf874xSoftReset_)
+  {
+    this->softReset();
+  }
   else {
     status = asynMotorController::writeInt32(pasynUser, value);
   }
@@ -216,6 +234,45 @@ asynStatus nf874xController::writeFloat64(asynUser *pasynUser, epicsFloat64 valu
   return status;
 }
 
+/** Scans for motors connect to controller, sets the motor type.  Saves motor 
+  * type in non-volatile memory.
+  *
+  */
+asynStatus nf874xController::motorCheck()
+{
+  asynStatus status = asynSuccess;
+  nf874xAxis *pAxis; 
+
+  /* scan for motors connected to controller */
+  sprintf(outString_, "MC");
+  status = writeController();
+  /* save motor parameters */
+  sprintf(outString_, "SM");
+  status = writeController();
+  /* update axis settings */
+  for (int i=0; i<numAxes_; i++) {
+        pAxis=getAxis(i);
+        if (!pAxis) continue;
+        pAxis->setMotorType();
+  }
+ 
+  return status;
+}
+
+/** Performs soft reset on controller 
+  *
+  */
+asynStatus nf874xController::softReset()
+{
+  asynStatus status = asynSuccess;
+
+  /* soft reset */
+  sprintf(outString_, "RS");
+  status = writeController();
+
+  return status;
+}
+
 // These are the nf874xAxis methods
 
 /** Creates a new nf874xAxis object.
@@ -244,6 +301,25 @@ nf874xAxis::nf874xAxis(nf874xController *pC, int axisNo)
     callParamCallbacks();
     setClosedLoop(true);
   }
+
+  this->setMotorType();
+}
+
+/** This command is used to query the motor type of an axis.
+  * It simply reports the present motor type setting in memory - it does
+  * not perform a check to determine if the setting is still valid.
+  * 
+  */
+asynStatus Pico8742Axis::setMotorType()
+{
+  asynStatus status = asynSuccess;
+  /* get pico motor type, if small limit velocity */
+  sprintf(pC_->outString_, "%1dQM?", axisNo_ + 1);
+  status = pC_->writeReadController();
+  picoType_ = (atoi(pC_->inString_));
+  setIntegerParam(pC_->Pico8742MotorType_, picoType_);
+  callParamCallbacks();
+  return status;
 }
 
 /** Reports on status of the driver
