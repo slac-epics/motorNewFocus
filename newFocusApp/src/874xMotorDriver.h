@@ -74,8 +74,6 @@ public:
   /* These are the methods that we override from asynMotorDriver */
   asynStatus writeInt32(asynUser *pasynUser, epicsInt32 value);
   asynStatus writeFloat64(asynUser *pasynUser, epicsFloat64 value);
-  asynStatus writeReadController();
-  asynStatus writeController();
   void report(FILE *fp, int level);
   nf874xAxis* getAxis(asynUser *pasynUser);
   nf874xAxis* getAxis(int axisNo);
@@ -93,7 +91,6 @@ protected:
   int nf874xSoftReset_;
 
   int hasClosedLoopSupport_;  /**< Flag indicating if controller supports closed-loop functionality */
-  asynUser *pasynUserCommonController_;  
   asynStatus motorCheck();
   asynStatus softReset();
 
