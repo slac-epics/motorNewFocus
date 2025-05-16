@@ -1,4 +1,4 @@
-# Database for Pico8742 controller
+# Database for nf874x controller
 record(bo, "$(P)$(R):MOTOR_CHECK") {
   field(DESC, "Check for Motors")
   field(DTYP, "asynInt32")
@@ -12,7 +12,7 @@ record(bo, "$(P)$(R):SOFT_RESET") {
 }
 
 record(stringin, "$(P)$(R):FIRMWARE") {
-  field(DESC, "Pico 8742 Firmware String")
+  field(DESC, "NF 874x Firmware String")
   field(DTYP, "asynOctetRead")
   field(INP, "@asyn($(PORT),$(ADDR))FIRMWARE_VERSION")
   field(SCAN, "I/O Intr")

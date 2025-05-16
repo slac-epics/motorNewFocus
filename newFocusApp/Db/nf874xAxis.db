@@ -1,4 +1,4 @@
-# Database for Pico8742 axis
+# Database for nf874x axis
 record(mbbi, "$(P)$(R):MOTOR_TYPE") {
   field(DESC, "Motor type")
   field(DTYP, "asynInt32")
