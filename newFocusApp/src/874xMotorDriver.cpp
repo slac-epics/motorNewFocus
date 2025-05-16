@@ -322,7 +322,7 @@ asynStatus nf874xAxis::setMotorType()
 {
   asynStatus status = asynSuccess;
   /* get motor type. If small, limit velocity */
-  sprintf(pC_->outString_, "%1dQM?", axisNo_ + 1);
+  sprintf(pC_->outString_, "%s QM?", axisName_);
   status = pC_->writeReadController();
   motorType_ = (atoi(pC_->inString_));
   setIntegerParam(pC_->nf874xMotorType_, motorType_);
@@ -407,10 +407,7 @@ asynStatus nf874xAxis::home(double minVelocity, double maxVelocity, double accel
 {
   asynStatus status;
   
-  sprintf(pC_->outString_, "%s AC %f", axisName_, acceleration);
-  status = pC_->writeController();
-  sprintf(pC_->outString_, "%s VA %f", axisName_, maxVelocity);
-  status = pC_->writeController();
+  status = sendAccelAndVelocity(acceleration, maxVelocity);
 
   if(limitChecking_)
     sprintf(pC_->outString_, "%s MT %s", axisName_, forwards ? "+" : "-");
@@ -436,10 +433,7 @@ asynStatus nf874xAxis::moveVelocity(double minVelocity, double maxVelocity, doub
     speed = -speed;
     forwards = 0;
   }
-  sprintf(pC_->outString_, "%s AC %f", axisName_, acceleration);
-  status = pC_->writeController();
-  sprintf(pC_->outString_, "%s VA %f", axisName_, speed);
-  status = pC_->writeController();
+  status = sendAccelAndVelocity(acceleration, speed);
   sprintf(pC_->outString_, "%s MV %s", axisName_, forwards ? "+" : "-");
   status = pC_->writeController();
   lastDirection_ = forwards;
