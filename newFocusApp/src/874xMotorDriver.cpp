@@ -29,6 +29,14 @@ March 4, 2011
 
 #define NUM_nf874x_PARAMS 3
 
+#define NO_MOTOR 0
+#define UNKNOWN_MOTOR 1
+#define TINY_MOTOR 2
+#define STANDARD_MOTOR 3
+
+#define TINY_VMAX 1750
+#define STANDARD_VMAX 2000
+
 static const char *driverName = "nf874xMotorDriver";
 
 /** Creates a new nf874xController object.
@@ -339,6 +347,28 @@ void nf874xAxis::report(FILE *fp, int level)
   asynMotorAxis::report(fp, level);
 }
 
+asynStatus nf874xAxis::sendAccelAndVelocity(double acceleration, double velocity) 
+{
+  asynStatus status;
+  
+  /* limit to maximum velocity, if standard motor set to STANDARD_VMAX */
+  /* otherwise it is TINY_MOTOR or UNKNOWN_MOTOR, limit to TINY_VMAX */
+  if(motorType_ == STANDARD_MOTOR) {
+      velocity = velocity > STANDARD_VMAX ? STANDARD_VMAX : velocity; 
+  }
+  else {
+      velocity = velocity > TINY_VMAX ? TINY_VMAX : velocity; 
+  }
+  // Send the velocity in egus
+  sprintf(pC_->outString_, "%s VA %f", axisName_, (velocity));
+  status = pC_->writeController();
+
+  // Send the acceleration in egus/sec/sec
+  sprintf(pC_->outString_, "%s AC %f", axisName_, (acceleration));
+  status = pC_->writeController();
+  return status;
+}
+
 /** Move to position relative to home or current position.
   * \param[in] position     Absolute position to move to or relative distance to move. Units set with "SN".
   * \param[in] relative     Flag indicating relative move (1) or absolute move (0).
@@ -351,10 +381,7 @@ asynStatus nf874xAxis::move(double position, int relative, double minVelocity,
   asynStatus status;
   double targetPosition_;
   
-  sprintf(pC_->outString_, "%s AC %f", axisName_, acceleration);
-  status = pC_->writeController();
-  sprintf(pC_->outString_, "%s VA %f", axisName_, maxVelocity);
-  status = pC_->writeController();
+  status = sendAccelAndVelocity(acceleration, maxVelocity);
 
   if (relative) {
     sprintf(pC_->outString_, "%s PR %f", axisName_, position);
