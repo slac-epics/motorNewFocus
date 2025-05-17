@@ -1,4 +1,7 @@
-R0-1.0.0    04/10/2025 - Marcio Donadio
-            - The submodule commit e146427 is referenced in motor 7.3.1, but no
-              tag was applied. We decided to arbitralily tag it as R0. So, this
-              release is R0-1.0.0.
+R1.2.1-1.0.0    05/16/2025 - Marcio Donadio
+                - Added database support to:
+                  - Read motor axis type: tiny, standard, etc.
+                  - Issue a soft reset on the controller.
+                  - Read firmware information.
+                - For all commands that issue velocity and acceleration, use a
+                  new function to limit them according to the axis type.
